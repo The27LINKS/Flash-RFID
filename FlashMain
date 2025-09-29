@@ -1,0 +1,806 @@
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+#include <RTClib.h>
+RTC_DS1307 rtc;
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+
+#define OLED_RESET     -1
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
+const uint8_t PROGMEM swastikBar[] = {  //(X, Y, swastikBar, 8, 1, WHITE)
+B11110000
+};
+const uint8_t PROGMEM swastikBarH[] = {  //(X, Y, swastikBar, 8, 4, WHITE)
+B10000000,
+B10000000,
+B10000000,
+B10000000
+};
+const uint8_t PROGMEM swastikDot[] = {  //(X, Y, swastikDot, 8, 6, WHITE)
+B00110000,
+B01111000,
+B11111100,
+B11111100,
+B01111000,
+B00110000
+};
+const uint8_t PROGMEM swastikEdge1[] = {  //(X, Y, swastikEdge1, 8, 6, WHITE)
+B00100000,
+B00100000,
+B01100000,
+B11100000,
+B11000000,
+B11000000,
+B10000000
+};
+const uint8_t PROGMEM swastikEdge2[] = {  //(X, Y, swastikEdge2, 8, 3, WHITE)
+B01111000,
+B00111100,
+B00001111
+};
+const uint8_t PROGMEM swastikEdge3[] = {  //(X, Y, swastikEdge2, 8, 5, WHITE)
+B00100000,
+B01100000,
+B01100000,
+B11100000,
+B11000000,
+B10000000,
+B10000000
+};
+const uint8_t PROGMEM swastikEdge4[] = {  //(X, Y, swastikEdge2, 8, 3, WHITE)
+B11110000,
+B00111100,
+B00011110
+};
+
+
+
+const uint8_t PROGMEM line[] = {  //(X, Y, line, 8, 1, WHITE)
+B10000000
+};
+const uint8_t PROGMEM tempLogo[] = {  //(X, Y, tempLogo, 8, 9, WHITE)
+B00100000,
+B01010000,
+B01010000,
+B01010000,
+B01010000,
+B10001000,
+B10001000,
+B10001000,
+B01110000
+};
+const uint8_t PROGMEM btLogo[] = {  //(X, Y, btLogo, 8, 9, WHITE)
+B00011000,
+B10010100,
+B01010010,
+B00110100,
+B00111000,
+B00110100,
+B01010010,
+B10010100,
+B00011000
+};
+const uint8_t PROGMEM wifi4Logo[] = {  //(X, Y, btLogo, 16, 4, WHITE)
+B00001111, B10000000,
+B00010000, B01000000,
+B01100000, B00110000,
+B10000000, B00001000
+};
+const uint8_t PROGMEM wifi3Logo[] = {  //(X, Y, btLogo, 16, 3, WHITE)
+B00011111, B00000000,
+B00100000, B10000000,
+B01000000, B01000000
+};
+const uint8_t PROGMEM wifi2Logo[] = {  //(X, Y, btLogo, 8, 4, WHITE)
+B00000100,
+B00001010,
+B00010001,
+B00000100
+};
+const uint8_t PROGMEM wifi1Logo[] = {  //(X, Y, btLogo, 8, 9, WHITE)
+B00000100
+};
+const uint8_t PROGMEM heartLogo[] = {  //(X, Y, heartLogo, 16, 9, WHITE)
+B01100000, B11000000,
+B11110001, B11100000,
+B11111011, B11100000,
+B11111111, B11100000,
+B01111111, B11000000,
+B00111111, B10000000,
+B00011111, B00000000,
+B00001110, B00000000,
+B00000100, B00000000
+};
+const uint8_t PROGMEM powerLogo[] = {  //(X, Y, powerLogo, 16, 9, WHITE)
+B00111110, B00000000,
+B01000001, B00000000,
+B10001000, B10000000,
+B10101010, B10000000,
+B10101010, B10000000,
+B10100010, B10000000,
+B10011100, B10000000,
+B01000001, B00000000,
+B00111110, B00000000
+};
+const uint8_t PROGMEM clockLogo[] = {  //(X, Y, clockLogo, 16, 9, WHITE)
+B00111110, B00000000,
+B01001001, B00000000,
+B10001000, B10000000,
+B10001000, B10000000,
+B10001110, B10000000,
+B10010000, B10000000,
+B10100000, B10000000,
+B01000001, B00000000,
+B00111110, B00000000
+};
+const uint8_t PROGMEM stopWatchLogo[] = {  //(X, Y, stopWatchLogo, 8, 9, WHITE)
+B11111110,
+B10000010,
+B01111100,
+B00111000,
+B00010000,
+B00101000,
+B01000100,
+B11111110,
+B11111110
+};
+const uint8_t PROGMEM volumeLogo[] = {  //(X, Y, volumeLogo, 16, 9, WHITE)
+B00001100, B00100000,
+B00011100, B00010000,
+B00111110, B10010000,
+B11111110, B01001000,
+B11111110, B01001000,
+B11111110, B01001000,
+B00111110, B10010000,
+B00011100, B00010000,
+B00001100, B00100000
+};
+const uint8_t PROGMEM cellPositiveLogo[] = {  //(X, Y, cellPositiveLogo, 8, 9, WHITE)
+B00100000,
+B00100000,
+B00100000,
+B00100000,
+B11100000,
+B00100000,
+B00100000,
+B00100000,
+B00100000
+};
+const uint8_t PROGMEM cellNegativeLogo[] = {  //(X, Y, cellNegativeLogo, 16, 9, WHITE)
+B00000000,
+B00000000,
+B10000000,
+B10000000,
+B11100000,
+B10000000,
+B10000000,
+B00000000,
+B00000000
+};
+const uint8_t PROGMEM cellLogo[] = {  //(X, Y, cellLogo, 8, 9, WHITE)
+B00100000,
+B00100000,
+B10100000,
+B10100000,
+B11100000,
+B10100000,
+B10100000,
+B00100000,
+B00100000
+};
+const uint8_t PROGMEM lightLogo[] = {  //(X, Y, lightLogo, 16, 9, WHITE)
+B00011000, B10111000,
+B00010100, B10011000,
+B00010010, B10101000,
+B00010001, B11000000,
+B11110000, B11100000,
+B00010001, B10000000,
+B00010010, B10000000,
+B00010100, B10000000,
+B00011000, B10000000
+};
+const uint8_t PROGMEM mikeLogo[] = {  //(X, Y, lightLogo, 8, 9, WHITE)
+B10000000,
+B10000000,
+B10011100,
+B10100011,
+B11100010,
+B10100011,
+B10011100,
+B10000000,
+B10000000 
+};
+
+
+
+int ref_eye_height = 40;
+int ref_eye_width = 40;
+int ref_space_between_eye = 20;
+int ref_corner_radius = 30;
+//current state of the eyes
+int left_eye_height = ref_eye_height;
+int left_eye_width = ref_eye_width;
+int left_eye_x = 32;
+int left_eye_y = 32;
+int right_eye_x = 32+ref_eye_width+ref_space_between_eye;
+int right_eye_y = 32;
+int right_eye_height = ref_eye_height;
+int right_eye_width = ref_eye_width;
+
+
+//This is an animation function for SWASTIK
+void drawSwastik(){
+  int speed = 2;
+for (int j = 6; j <= 25; j++) {
+    display.drawBitmap(62 ,j , swastikBar, 8, 1, WHITE);
+    display.display();
+    delay(speed);
+    }
+for (int i = 85; i >= 66; i--) {
+    display.drawBitmap(i ,23 , swastikBarH, 8, 4, WHITE);
+    display.display();
+    delay(speed);
+    }
+for (int j = 45; j >= 26; j--) {
+    display.drawBitmap(62 ,j , swastikBar, 8, 1, WHITE);
+    display.display();
+    delay(speed);
+    }
+for (int i = 45; i <= 65; i++) {
+    display.drawBitmap(i ,23 , swastikBarH, 8, 4, WHITE);
+    display.display();
+    delay(speed);
+    }
+for (int i = 85; i >= 64; i--) {
+    display.drawBitmap(i ,6 , swastikBarH, 8, 4, WHITE);
+    display.display();
+    delay(speed);
+    }
+for (int j = 45; j >= 24; j--) {
+    display.drawBitmap(82 ,j , swastikBar, 8, 1, WHITE);
+    display.display();
+    delay(speed);
+    }
+for (int i = 46; i <= 65; i++) {
+    display.drawBitmap(i ,42 , swastikBarH, 8, 4, WHITE);
+    display.display();
+    delay(speed);
+    }
+for (int j = 6; j <= 23; j++) {
+    display.drawBitmap( 45 ,j , swastikBar, 8, 1, WHITE);
+    display.display();
+    delay(speed);
+    }
+    display.drawBitmap(86 , 2 , swastikEdge1, 8, 7, WHITE);
+    display.display();
+    delay(200*speed);
+    display.drawBitmap(82 ,46 , swastikEdge2, 8, 3, WHITE);
+    display.display();
+    delay(200*speed);
+    display.drawBitmap(43 ,43 , swastikEdge3, 8, 7, WHITE);
+    display.display();
+    delay(200*speed);
+    display.drawBitmap(40 ,3 , swastikEdge4, 8, 3, WHITE);
+    display.display();
+    delay(200*speed);
+     display.drawBitmap(70 ,14 , swastikDot, 8, 6, WHITE);
+    display.display();
+    delay(200*speed);
+     display.drawBitmap(70 ,32 , swastikDot, 8, 6, WHITE);
+    display.display();
+    delay(200*speed);
+     display.drawBitmap(52 ,32 , swastikDot, 8, 6, WHITE);
+    display.display();
+    delay(200*speed);
+     display.drawBitmap(52 ,14 , swastikDot, 8, 6, WHITE);
+    display.display();
+    delay(200*speed);   
+    display.setTextSize(1);
+    display.setTextColor(SSD1306_WHITE);
+  display.setCursor(32, 54);
+  display.print("T");
+  display.display();
+  delay(200);
+  display.setCursor(32, 54);
+  display.print("Th");
+  display.display();
+  delay(200);
+  display.setCursor(32, 54);
+  display.print("The");
+  display.display();
+  delay(200);
+  display.setCursor(32, 54);
+  display.print("The ");
+  display.display();
+  delay(200);
+  display.setCursor(32, 54);
+  display.print("The 27");
+  display.display();
+  delay(200);
+  display.setCursor(32, 54);
+  display.print("The 27L");
+  display.display();
+  delay(200);
+  display.setCursor(32, 54);
+  display.print("The 27LI");
+  display.display();
+  delay(200);
+  display.setCursor(32, 54);
+  display.print("The 27LIN");
+  display.display();
+  delay(200);
+  display.setCursor(32, 54);
+  display.print("The 27LINK");
+  display.display();
+  delay(200);
+  display.setCursor(32, 54);
+  display.print("The 27LINKS");
+  display.display();
+  delay(5000);
+}
+
+
+//This is a EYES ANIMATION code
+void draw_eyes(bool update=true){
+    display.clearDisplay();        
+    //draw from center
+    int x = int(left_eye_x-left_eye_width/2);
+    int y = int(left_eye_y-left_eye_height/2);
+    display.fillRoundRect(x,y,left_eye_width,left_eye_height,ref_corner_radius,SSD1306_WHITE);
+    x = int(right_eye_x-right_eye_width/2);
+    y = int(right_eye_y-right_eye_height/2);
+    display.fillRoundRect(x,y,right_eye_width,right_eye_height,ref_corner_radius,SSD1306_WHITE);    
+    if(update)
+    {
+      display.display();
+    }}
+void center_eyes(bool update=true){
+  left_eye_height = ref_eye_height;
+  left_eye_width = ref_eye_width;
+  right_eye_height = ref_eye_height;
+  right_eye_width = ref_eye_width;
+ 
+  left_eye_x = SCREEN_WIDTH/2-ref_eye_width/2-ref_space_between_eye/2;
+  left_eye_y = SCREEN_HEIGHT/2;
+  right_eye_x = SCREEN_WIDTH/2+ref_eye_width/2+ref_space_between_eye/2;
+  right_eye_y = SCREEN_HEIGHT/2;
+  draw_eyes(update);
+} 
+void blink(int speed=12)
+{
+  draw_eyes();
+  for(int i=0;i<3;i++)
+  {
+    left_eye_height = left_eye_height-speed;
+    right_eye_height = right_eye_height-speed;    
+    draw_eyes();
+    delay(1);
+  }
+  for(int i=0;i<3;i++)
+  {
+    left_eye_height = left_eye_height+speed;
+    right_eye_height = right_eye_height+speed;
+   
+    draw_eyes();
+    delay(1);
+  }
+}
+void wakeup()
+{
+  for(int h=0; h <= ref_eye_height; h+=1)
+  {
+    left_eye_height = h;
+    right_eye_height = h;
+    draw_eyes(true);
+  }} 
+void saccade(int direction_x, int direction_y)
+{
+  //quick movement of the eye, no size change. stay at position after movement, will not move back,  call again with opposite direction
+  //direction == -1 :  move left
+  //direction == 1 :  move right
+ 
+  int direction_x_movement_amplitude = 8;
+  int direction_y_movement_amplitude = 6;
+  int blink_amplitude = 8;
+ 
+  for(int i=0;i<1;i++)
+  {
+    left_eye_x+=direction_x_movement_amplitude*direction_x;
+    right_eye_x+=direction_x_movement_amplitude*direction_x;    
+    left_eye_y+=direction_y_movement_amplitude*direction_y;
+    right_eye_y+=direction_y_movement_amplitude*direction_y;    
+   
+    right_eye_height-=blink_amplitude;
+    left_eye_height-=blink_amplitude;
+    draw_eyes();
+    delay(1);
+  }
+ 
+  for(int i=0;i<1;i++)
+  {
+    left_eye_x+=direction_x_movement_amplitude*direction_x;
+    right_eye_x+=direction_x_movement_amplitude*direction_x;    
+    left_eye_y+=direction_y_movement_amplitude*direction_y;
+    right_eye_y+=direction_y_movement_amplitude*direction_y;
+ 
+    right_eye_height+=blink_amplitude;
+    left_eye_height+=blink_amplitude;
+ 
+    draw_eyes();
+    delay(1);
+  }
+ 
+}
+ 
+void move_right_big_eye()
+{
+  move_big_eye(1);
+}
+void move_left_big_eye()
+{
+  move_big_eye(-1);
+}
+void move_big_eye(int direction)
+{
+  //direction == -1 :  move left
+  //direction == 1 :  move right
+ 
+  int direction_oversize = 1;
+  int direction_movement_amplitude = 2;
+  int blink_amplitude = 5;
+ 
+  for(int i=0;i<3;i++)
+  {
+    left_eye_x+=direction_movement_amplitude*direction;
+    right_eye_x+=direction_movement_amplitude*direction;    
+    right_eye_height-=blink_amplitude;
+    left_eye_height-=blink_amplitude;
+    if(direction>0)
+    {
+      right_eye_height+=direction_oversize;
+      right_eye_width+=direction_oversize;
+    }else
+    {
+      left_eye_height+=direction_oversize;
+      left_eye_width+=direction_oversize;
+    }
+ 
+    draw_eyes();
+    delay(1);
+  }
+  for(int i=0;i<3;i++)
+  {
+    left_eye_x+=direction_movement_amplitude*direction;
+    right_eye_x+=direction_movement_amplitude*direction;
+    right_eye_height+=blink_amplitude;
+    left_eye_height+=blink_amplitude;
+    if(direction>0)
+    {
+      right_eye_height+=direction_oversize;
+      right_eye_width+=direction_oversize;
+    }else
+    {
+      left_eye_height+=direction_oversize;
+      left_eye_width+=direction_oversize;
+    }
+    draw_eyes();
+    delay(1);
+  }
+ 
+  delay(1000);
+ 
+  for(int i=0;i<3;i++)
+  {
+    left_eye_x-=direction_movement_amplitude*direction;
+    right_eye_x-=direction_movement_amplitude*direction;    
+    right_eye_height-=blink_amplitude;
+    left_eye_height-=blink_amplitude;
+    if(direction>0)
+    {
+      right_eye_height-=direction_oversize;
+      right_eye_width-=direction_oversize;
+    }else
+    {
+      left_eye_height-=direction_oversize;
+      left_eye_width-=direction_oversize;
+    }
+    draw_eyes();
+    delay(1);
+  }
+  for(int i=0;i<3;i++)
+  {
+    left_eye_x-=direction_movement_amplitude*direction;
+    right_eye_x-=direction_movement_amplitude*direction;    
+    right_eye_height+=blink_amplitude;
+    left_eye_height+=blink_amplitude;
+    if(direction>0)
+    {
+      right_eye_height-=direction_oversize;
+      right_eye_width-=direction_oversize;
+    }else
+    {
+      left_eye_height-=direction_oversize;
+      left_eye_width-=direction_oversize;
+    }
+    draw_eyes();
+    delay(1);
+  }
+  center_eyes();
+}
+
+
+//This is an animation function of WIFI
+void wifiAnimation(int x, int y, int animationSpeed, int loopStatus){  //wifiAnimation(x, y, animationSpeed, loopYes/loopNo(1/0) )
+if(loopStatus==1){
+    display.drawBitmap(1+x ,9+y , wifi1Logo, 8, 1, BLACK);
+    display.drawBitmap(1+x ,6+y , wifi2Logo, 8, 4, BLACK);
+    display.drawBitmap(1+x ,4+y , wifi3Logo, 16, 3, BLACK);
+    display.drawBitmap(x ,1+y , wifi4Logo, 16, 4, BLACK);
+    display.drawBitmap(1+x ,9+y , wifi1Logo, 8, 1, WHITE);
+    display.display();
+    delay(animationSpeed);
+    display.drawBitmap(1+x ,6+y , wifi2Logo, 8, 4, WHITE);
+    display.display();
+    delay(animationSpeed);
+    display.drawBitmap(1+x ,4+y , wifi3Logo, 16, 3, WHITE);
+    display.display();
+    delay(animationSpeed);
+    display.drawBitmap(x ,1+y , wifi4Logo, 16, 4, WHITE);
+    display.display();
+    delay(animationSpeed);
+}
+else{
+    display.drawBitmap(1+x ,9+y , wifi1Logo, 8, 1, WHITE);
+    display.drawBitmap(1+x ,6+y , wifi2Logo, 8, 4, WHITE);
+    display.drawBitmap(1+x ,4+y , wifi3Logo, 16, 3, WHITE);
+    display.drawBitmap(x ,1+y , wifi4Logo, 16, 4, WHITE);
+    display.display();
+}
+}
+
+// This is a function for HEART beat animation
+void heartAnimation(int x, int y, int bpm, int loopStatus) {    // heartAnimation(x, y, bpm, loopTime)
+  int animationSpeed = (60000 / bpm) / 2;  // ms per half-beat
+  if(loopStatus==1) {
+    // Heart "off"
+    display.drawBitmap(x, y, heartLogo, 16, 9, BLACK);
+    display.display();
+    delay(animationSpeed);
+    // Heart "on"
+    display.drawBitmap(x, y, heartLogo, 16, 9, WHITE);
+    display.display();
+    delay(animationSpeed);
+  }
+  else{
+    display.drawBitmap(x, y, heartLogo, 16, 9, WHITE);
+    display.display();
+  }
+  }
+
+
+// This is the function for showing BATTERY LOGO as pe percentage
+// Animation variables
+int elX = 128;     // Bottom 'e' X position
+int elY = -34;       // Bottom 'e' vertical bounce offset (0 starts at the middle)
+int elYDir = 3;    // Vertical direction
+unsigned long lastAnimTime = 0;
+const int animSpeed = 10;        // Lower = faster animation
+const int animMaxX = 128;        // Right boundary of animation
+// Previous position tracker
+int prevElX = 128;
+int prevElY = 0;
+
+void batteryPercentage(int x, int y, int percentage, int status, int charging){  //batteryPercentage(x, y, percentageWithoutPercentSign, showPercentage/hidePercentage(1/0), chargingStatus(1/0) );
+  int a=x+24;
+  unsigned long lastAnimTime = 0;
+  int animSpeed = 50; // Lower = faster animation
+  display.setTextSize(1);
+  display.setTextColor(SSD1306_WHITE);      //conflict with value of a
+  if(status==1){
+   display.setCursor(x, y);
+   display.print(percentage);
+   display.print("%");
+  }
+   if(status==0){
+     display.setCursor(x, y);
+     display.print("   ");
+   }
+    display.drawBitmap(a ,y , cellPositiveLogo, 8, 9, WHITE);
+  if(percentage>25){
+    display.drawBitmap(a+4 ,y , cellLogo, 8, 9, WHITE);
+    }
+ if(percentage>50){
+   display.drawBitmap(a+8 ,y , cellLogo, 8, 9, WHITE);
+   }
+ if(percentage>75){
+    display.drawBitmap(a+12 ,y , cellLogo, 8, 9, WHITE);
+    }
+int n = ((percentage - 1) / 25 + 1) * 4;   //position of last terminal according to battery percentage
+   display.drawBitmap(a+n ,y , cellNegativeLogo, 8, 9, WHITE);
+    display.display();
+  //CHARGING ANIMATION
+  const int animMinX = (a+n+4);         // Left boundary of animation
+   if (charging == 1) {
+  unsigned long currentTime = millis();
+  if (currentTime - lastAnimTime >= animSpeed) {
+    lastAnimTime = currentTime;
+    // 🧽 Erase only the previous 'e' position
+    display.fillRect(prevElX, 35 + prevElY, 6, 8, BLACK);
+
+    // Update bounce position (elY goes from -5 to 5)
+    elY += elYDir;
+    if (elY >= 5 || elY <= -5) {
+      elYDir *= -1; // Reverse direction at the limits
+    }
+    // Reset X when off-screen
+    if (elX <= animMinX) {
+      elX = animMaxX;
+    }
+    //  Only draw if fully on screen
+    if (elX >= 0 && elX <= SCREEN_WIDTH - 6) {
+      display.setCursor(elX, 35 + elY);
+      display.print("e");
+    }
+    display.display();
+    // Update previous for next erase
+    prevElX = elX;
+    prevElY = elY;
+    // Move left
+    elX--;
+  }
+  }
+}
+//This code is used to run time using delay in the loop
+void time() {
+  DateTime now = rtc.now();
+
+  // Extract values
+  int h = now.hour();
+  int m = now.minute();
+  int s = now.second();
+  bool isPM = false;
+
+  // Convert to 12 hr format
+  if (h == 0) h = 12;
+  else if (h >= 12) {
+    if (h > 12) h -= 12;
+    isPM = true;
+  }
+  // --- HOURS ---
+  display.setTextSize(4);
+  display.setTextColor(SSD1306_WHITE);
+  display.setCursor(2, 18);
+  if (h < 10) display.print("0");
+  display.print(h);
+
+  // --- MINUTES ---
+  display.setTextSize(2);
+  display.setCursor(60, 18);
+  if (m < 10) display.print("0");
+  display.print(m);
+
+  // --- AM/PM ---
+  display.setTextSize(2);
+  display.setCursor(60, 34);
+  display.print(isPM ? "PM" : "AM");
+
+  // --- BLINKING DOTS (like your swastikDot style) ---
+  if (s % 2 == 0) {
+    display.fillRect(50, 24, 8, 6, SSD1306_WHITE);
+    display.fillRect(50, 34, 8, 6, SSD1306_WHITE);
+  } else {
+    display.fillRect(50, 24, 8, 6, SSD1306_BLACK);
+    display.fillRect(50, 34, 8, 6, SSD1306_BLACK);
+  }
+
+  display.display();
+}
+
+
+
+                                       //Starting All The Interfaces For Flash  [ (Flash Screen), (Home Screen), (Functions Menu Screen, (Setting Function Programme) ]
+
+                                       //Flsh Screen Interface
+                                       void flashScreen(){
+                                         display.clearDisplay();
+                                         wakeup();
+                                         delay(300);  
+                                         center_eyes(true);
+                                         delay(300);   
+                                         move_right_big_eye();
+                                         delay(1000);
+                                         move_left_big_eye();
+                                         delay(1000);
+                                         blink(20);
+                                         delay(1500);
+                                         blink(20);      
+                                         delay(1500);
+                                         blink(20);
+                                         delay(1500);
+                                         display.clearDisplay();              
+                                         drawSwastik();
+                                       }
+
+                                       //Home Screen interface
+                                       void homeScreen(){
+                                        //Top Line
+                                        display.clearDisplay();                                        
+                                        for(int i = 1; i <= 124; i++) {
+                                           display.drawBitmap(i ,12 , line, 8, 1, WHITE);
+                                                                      }
+                                       //Battery Status
+                                       batteryPercentage(70, 2, 99, 1, 0);         //batteryPercentage(x, y, percentageWithoutPercentSign, showPercentage/hidePercentage(1/0), chargingStatus(1/0) );
+
+                                       }
+
+
+
+
+
+
+
+
+
+
+
+
+void setup() {
+  Serial.begin(115200);
+  delay(2000);
+  Serial.println(F("Starting!"));
+
+  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+    Serial.println(F("SSD1306 allocation failed"));
+    for (;;);
+  }
+  Serial.println(F("Initialized!"));
+ 
+ 
+ 
+ flashScreen();
+
+ // display.drawBitmap(2 ,2 , tempLogo, 8, 9, WHITE);
+  //  display.drawBitmap(9 ,2 , btLogo, 8, 9, WHITE);                   
+    //display.drawBitmap(90 ,2 , powerLogo, 16, 9, WHITE);
+  //  display.display();
+   // display.drawBitmap(48 ,2 , clockLogo, 16, 9, WHITE);
+   // display.display();
+//display.drawBitmap(61 ,2 , stopWatchLogo, 8, 9, WHITE);
+   // display.display();
+    //display.drawBitmap(74 ,2 , volumeLogo, 16, 9, WHITE);
+    //display.display();
+   // display.drawBitmap(35 ,2 , lightLogo, 16, 9, WHITE);
+   // display.display();
+   //display.drawBitmap(107 ,2 , cellPositiveLogo, 8, 9, WHITE);
+    //display.display();
+   // display.drawBitmap(111 ,2 , cellLogo, 8, 9, WHITE);
+   // display.display();
+   // display.drawBitmap(115 ,2 , cellLogo, 8, 9, WHITE);
+   // display.display();
+   // display.drawBitmap(119 ,2 , cellNegativeLogo, 8, 9, WHITE);
+   // display.display();
+   // display.drawBitmap(2 ,14 , heartLogo, 16, 9, WHITE);
+   // display.display();
+   // display.drawBitmap(20 ,14 , mikeLogo, 8, 9, WHITE);
+   display.display();
+  /*  if (!rtc.begin()) {
+    Serial.println("Couldn't find RTC");
+    while (1);
+  }
+
+  if (!rtc.isrunning()) {
+    Serial.println("RTC not running, setting time!");
+    rtc.adjust(DateTime(F(__DATE__), F(__TIME__))); // sets RTC to compile time
+  }                                                                                          */
+}
+
+void loop() { 
+ // wifiAnimation(18, 1, 50, 0);                        //wifiAnimation(x, y, animationSpeed, loopYes/loopNo(1/0) );
+ //heartAnimation(52, 2, 72, 0);                      //heartAnimation(x, y, bpm, loopYes/loopNo(1/0) );
+ homeScreen();
+ //display.setCursor(6, 50);
+ //display.print("21 April 2025");
+ //time(); 
+}
